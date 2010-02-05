@@ -1,0 +1,70 @@
+Name:		biosdevname
+Version:	@PACKAGE_VERSION@
+Release:	1%{?dist}
+Summary:	Udev helper for naming devices per BIOS names
+
+Group:		System Environment/Base
+License:	GPLv2
+URL:		http://linux.dell.com/files/%{name}
+# SMBIOS and PCI IRQ Routing Tables only exist on these arches.  It's
+# also likely that other arches don't expect the PCI bus to be sorted
+# breadth-first, or of so, there haven't been any comments about that
+# on LKML.
+ExclusiveArch:	%{ix86} x86_64 ia64
+Source0:	http://linux.dell.com/files/%{name}/%{name}-%{version}.tar.gz
+BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+BuildRequires:	pciutils-devel, zlib-devel
+# to figure out how to name the rules file
+BuildRequires:	udev
+# for ownership of /etc/udev/rules.d
+Requires: udev
+
+
+%description
+biosdevname in its simplest form takes a kernel device name as an
+argument, and returns the BIOS-given name it "should" be.  This is necessary
+on systems where the BIOS name for a given device (e.g. the label on
+the chassis is "Gb1") doesn't map directly and obviously to the kernel
+name (e.g. eth0).
+
+%prep
+%setup -q
+
+%build
+# this is a udev rule, so it needs to live in / rather than /usr
+%configure --disable-rpath --prefix=/ --sbindir=/sbin
+make %{?_smp_mflags}
+
+
+%install
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot}
+rm %{buildroot}/sbin/%{name}S  || :
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%doc COPYING README
+/sbin/%{name}
+%config(noreplace) %{_sysconfdir}/udev/rules.d/*%{name}.rules
+%{_mandir}/1/%{name}.1
+
+
+%changelog
+* Fri Sep 21 2007 Matt Domsch <Matt_Domsch@dell.com> 0.2.4-1
+- coordinate udev rules usage with udev maintainer
+- fix crashes in pcmcia search, in_ethernet(), and incorrect command
+  line parsing.
+
+* Mon Aug 27 2007 Matt Domsch <Matt_Domsch@dell.com> 0.2.3-1
+- eliminate libbiosdevname.*, pre and post scripts
+
+* Fri Aug 24 2007 Matt Domsch <Matt_Domsch@dell.com> 0.2.2-1
+- ExclusiveArch those arches with SMBIOS and PCI IRQ Routing tables
+- eliminate libsysfs dependency, move app to / for use before /usr is mounted.
+- build static
+
+* Mon Aug 20 2007 Matt Domsch <Matt_Domsch@dell.com> 0.2.1-1
+- initial release

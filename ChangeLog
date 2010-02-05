@@ -1,0 +1,28 @@
+* Wed Nov 28 2006
+- fix usage() being printed on success
+- don't assign BIOS device names to Linux virtual devices (tun0)
+	(thanks to Bill Nottingham for finding both of these)
+
+* Wed Nov 28 2006
+- Release 0.1
+* Thu Aug 30 2007
+- drop libbiosdevname
+- autoconf/automake magic by Michael Brown
+- rpm spec cleanups per Fedora review
+
+* Fri Aug 24 2007
+- add spec files for Fedora and OpenSUSE
+- ExclusiveArch those arches with SMBIOS and PCI IRQ Routing tables
+- eliminate libsysfs dependency, move app to / for use before /usr is mounted.
+
+* Fri Jul 27 2007
+- add SMBIOS Type 9 and 41 extensions, and HP OEM-specific extension parsing
+- Release 0.2	
+	
+* Wed Nov 28 2006
+- fix usage() being printed on success
+- don't assign BIOS device names to Linux virtual devices (tun0)
+	(thanks to Bill Nottingham for finding both of these)
+
+* Wed Nov 28 2006
+- Release 0.1

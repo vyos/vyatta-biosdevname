@@ -1,0 +1,7 @@
+KERNEL!="eth*", GOTO="biosdevname_end"
+ACTION!="add",  GOTO="biosdevname_end"
+NAME=="?*",     GOTO="biosdevname_end"
+
+PROGRAM="/sbin/biosdevname --policy=all_ethN -i %k", ENV{INTERFACE_NAME}="%c"
+
+LABEL="biosdevname_end"

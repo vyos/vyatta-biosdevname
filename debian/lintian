@@ -1,0 +1,2 @@
+vyatta-biosdevname: file-in-unusual-dir
+vyatta-biosdevname: dir-or-file-in-opt

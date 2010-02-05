@@ -1,0 +1,24 @@
+Matt Domsch <Matt_Domsch@dell.com>
+ All files not otherwise noted
+
+list.h:
+ Cribbed from the Linux kernel 2.6.18.
+
+read_proc.c:
+ Cribbed from net-tools-1.60
+
+ethtool-copy.h:
+ Cribbed from ethtool
+
+pcmcia.c, cistpl.h, parse_cis.c, read-cis.c:
+ Cribbed from pcmciautils-014
+
+pcmcia.c sysfs_path_is_file()
+ Cribbed from sysfsutils-2.1.0 (LGPLv2+, relicensed and used here as GPLv2)
+
+dmidecode/*
+ Cribbed from dmidecode 2.9
+
+
+Michael Brown <Michael_E_Brown@dell.com>
+ autoconf/automake cleanups
