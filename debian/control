@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 5), autotools-dev, libpci-dev
 Standards-Version: 3.7.2
 
 Package: vyatta-biosdevname
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends},
  libpci3,
  zlib1g,
