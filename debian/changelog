@@ -1,3 +1,11 @@
+vyatta-biosdevname (0.2) unstable; urgency=low
+
+  [ Bob Gilligan ]
+  * Bugfix 5325: Debian arch must be "any" to build an multiple
+    architectures.
+
+ -- An-Cheng Huang <ancheng@vyatta.com>  Tue, 09 Feb 2010 18:45:12 -0800
+
 vyatta-biosdevname (0.1) unstable; urgency=low
 
   * Initial Release.
