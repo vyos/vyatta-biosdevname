@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.4) unstable; urgency=low
+
+  * UNRELEASED
+
+ -- An-Cheng Huang <ancheng@vyatta.com>  Thu, 22 Jul 2010 17:22:45 -0700
+
 vyatta-biosdevname (0.3) unstable; urgency=low
 
   * UNRELEASED
