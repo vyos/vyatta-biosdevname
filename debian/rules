@@ -22,9 +22,7 @@ CFLAGS = -Wall -g
 configure	 = ./configure
 configure	+= --host=$(DEB_HOST_GNU_TYPE)
 configure	+= --build=$(DEB_BUILD_GNU_TYPE)
-# configure	+= --prefix=/opt/vyatta
-# configure	+= --mandir=\$${prefix}/share/man
-# configure	+= --infodir=\$${prefix}/share/info
+configure	+= --mandir=/usr/share/man
 configure	+= CFLAGS="$(CFLAGS)"
 configure	+= LDFLAGS="-Wl,-z,defs"
 
@@ -74,6 +72,9 @@ install: build
 
 	install -D --mode=0644 debian/lintian $(PKGDIR)/usr/share/lintian/overrides/$(PACKAGE)
 	install -D --mode=0644 debian/linda $(PKGDIR)/usr/share/linda/overrides/$(PACKAGE)
+	# We don't need statically linked version of biosdevname
+	rm -f $(PKGDIR)/sbin/biosdevnameS
+
 	# We don't use the rules file from this package
 	rm -rf $(PKGDIR)/etc/udev/rules.d
 
