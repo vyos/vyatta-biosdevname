@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.7) unstable; urgency=low
+
+  * Put manual page for biosdevname in proper place
+
+ -- Stephen Hemminger <stephen.hemminger@vyatta.com>  Fri, 22 Oct 2010 14:10:52 -0700
+
 vyatta-biosdevname (0.6) unstable; urgency=low
 
   * UNRELEASED
