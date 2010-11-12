@@ -71,7 +71,7 @@ install: build
 	$(MAKE) DESTDIR=$(PKGDIR) install
 
 	install -D --mode=0644 debian/lintian $(PKGDIR)/usr/share/lintian/overrides/$(PACKAGE)
-	install -D --mode=0644 debian/linda $(PKGDIR)/usr/share/linda/overrides/$(PACKAGE)
+
 	# We don't need statically linked version of biosdevname
 	rm -f $(PKGDIR)/sbin/biosdevnameS
 
