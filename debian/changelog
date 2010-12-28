@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.8+mendocino1) unstable; urgency=low
+
+  * new branch
+
+ -- An-Cheng Huang <ancheng@vyatta.com>  Tue, 28 Dec 2010 20:34:17 +0000
+
 vyatta-biosdevname (0.8) unstable; urgency=low
 
   * remove deprecated linda override
