@@ -7,6 +7,7 @@
 #ifndef PCI_H_INCLUDED
 #define PCI_H_INCLUDED
 
+#include <limits.h>
 #include <pci/pci.h>
 #include "list.h"
 #include "state.h"
@@ -14,14 +15,37 @@
 
 struct pci_device {
 	struct list_head node;
-	struct pci_dev pci_dev;
+	struct pci_dev *pci_dev;
 	int physical_slot;
-	unsigned int index_in_slot;
+	unsigned int index_in_slot; /* only valid if physical_slot > 0 and not a VF */
+	unsigned int embedded_index; /* only valid if embedded_index_valid */
 	unsigned short int class;
+	unsigned char uses_smbios;
 	unsigned char smbios_type;
 	unsigned char smbios_instance;
 	unsigned char smbios_enabled;
+	char *smbios_label;
+	unsigned int sysfs_index;
+	char * sysfs_label;
+	unsigned char uses_sysfs;
+	unsigned int vf_index;
+	struct pci_device *pf;
+	struct list_head vfnode;
+	struct list_head vfs;
+	unsigned int is_sriov_physical_function:1;
+	unsigned int is_sriov_virtual_function:1;
+	unsigned int embedded_index_valid:1;
 };
+
+#define HAS_SMBIOS_INSTANCE 1
+#define HAS_SMBIOS_LABEL 2
+#define HAS_SMBIOS_SLOT  4
+#define HAS_SMBIOS_EXACT_MATCH 8
+
+#define HAS_SYSFS_INDEX 1
+#define HAS_SYSFS_LABEL 2
+#define PHYSICAL_SLOT_UNKNOWN (INT_MAX)
+#define INDEX_IN_SLOT_UNKNOWN (INT_MAX)
 
 extern int get_pci_devices(struct libbiosdevname_state *state);
 extern void free_pci_devices(struct libbiosdevname_state *state);
@@ -35,6 +59,16 @@ extern int unparse_pci_name(char *buf, int size, const struct pci_dev *pdev);
 static inline int is_pci_network(struct pci_device *dev)
 {
 	return (dev->class & 0xFF00) == 0x0200;
+}
+
+static inline int is_pci_smbios_type_ethernet(struct pci_device *dev)
+{
+	return (dev->smbios_type == 0x05);
+}
+
+static inline int is_pci_bridge(struct pci_device *dev)
+{
+	return (dev->pci_dev->device_class>>8 == 0x06);
 }
 
 #ifdef HAVE_STRUCT_PCI_DEV_DOMAIN

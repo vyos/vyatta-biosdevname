@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "types.h"
@@ -37,8 +38,8 @@
 #include "dmioem.h"
 #include "../state.h"
 #include "../pci.h"
+#include "../naming_policy.h"
 
-static const char *out_of_spec = "<OUT OF SPEC>";
 static const char *bad_index = "<BAD INDEX>";
 
 /*
@@ -73,76 +74,48 @@ const char *dmi_string(struct dmi_header *dm, u8 s)
 	return bp;
 }
 
-static const char *dmi_slot_current_usage(u8 code)
-{
-	/* 3.3.10.3 */
-	static const char *usage[]={
-		"Other", /* 0x01 */
-		"Unknown",
-		"Available",
-		"In Use" /* 0x04 */
-	};
-
-	if(code>=0x01 && code<=0x04)
-		return usage[code-0x01];
-	return out_of_spec;
-}
-
-static void dmi_slot_segment_bus_func(u16 code1, u8 code2, u8 code3, u8 type, const char *prefix)
-{
-	/* 3.3.10.8 */
-        if (!(code1==0xFFFF && code2==0xFF && code3==0xFF))
-	      printf("%sSegment Group %u, Bus %u, Device %u, Function %u ",
-		     prefix, code1, code2, (code3>>3)&0x1F, (code3&0x7));
-	switch(type)
-	{
-		case 0x06: /* PCI */
-		case 0x0E: /* PCI */
-		case 0x0F: /* AGP */
-		case 0x10: /* AGP */
-		case 0x11: /* AGP */
-		case 0x12: /* PCI-X */
-		case 0x13: /* AGP */
-		case 0xA5: /* PCI Express */
-			printf("\n");
-			break;
-	        default:
-			if (code1 != 0xFF || code2 != 0xFF || code3 != 0xFF)
-				printf("%s\n", out_of_spec);
-			break;
-	}
-}
-
-static u8 onboard_device_type(u8 code, const char *prefix)
-{
-	/* 3.3.x.2 */
-       u8 e = (code & 0x80)>>7;
-	static const char *type[]={
-		"Other", /* 1 */
-		"Unknown",
-		"Video",
-		"SCSI Controller",
-		"Ethernet",
-		"Token Ring",
-		"Sound",
-		"PATA Controller",
-		"SATA Controller",
-		"SAS Controller" /* 0x0A */
-	};
-	code = code & 0x7F;
-	if(code>=0x01 && code<=0x0A) {
-		printf("%sStatus: %s\n", prefix, e?"Enabled":"Disabled");
-		printf("%sDevice Type: %s\n", prefix, type[code-0x01]);
-	}
-	else
-		printf("%sDevice Type: %s\n", prefix, out_of_spec);
-}
-
 /*
  * Main
  */
 
 #define        MIN(a,b) (((a)<(b))?(a):(b))
+
+static void strip_right(char *s)
+{
+	int i, len = strlen(s);
+	for (i=len; i>=0; i--) {
+		if (isspace(s[i-1]))
+			s[i-1] = '\0';
+		else
+			break;
+	}
+}
+
+static void fill_one_slot_function(struct pci_device *pdev, struct dmi_header *h)
+{
+	u8 *data = h->data;
+	pdev->physical_slot = WORD(data+0x09);
+	pdev->smbios_type = 0;
+	pdev->smbios_instance = 0;
+	pdev->uses_smbios |= HAS_SMBIOS_SLOT;
+	if (dmi_string(h, data[0x04])) {
+		pdev->smbios_label=strdup(dmi_string(h, data[0x04]));
+		pdev->uses_smbios |= HAS_SMBIOS_LABEL;
+	}
+	strip_right(pdev->smbios_label);
+}
+
+static void fill_all_slot_functions(const struct libbiosdevname_state *state, int domain, int bus, int device, struct dmi_header *h)
+{
+	struct pci_device *pdev;
+	list_for_each_entry(pdev, &state->pci_devices, node) {
+		if (pdev->pci_dev->domain == domain &&
+		    pdev->pci_dev->bus    == bus &&
+		    pdev->pci_dev->dev    == device &&
+		    ! (pdev->uses_smbios & HAS_SMBIOS_EXACT_MATCH))
+			fill_one_slot_function(pdev, h);
+	}
+}
 
 static void dmi_decode(struct dmi_header *h, u16 ver, const struct libbiosdevname_state *state)
 {
@@ -162,10 +135,10 @@ static void dmi_decode(struct dmi_header *h, u16 ver, const struct libbiosdevnam
 					function = data[0x10] & 7;
 					pdev = find_pci_dev_by_pci_addr(state, domain, bus, device, function);
 					if (pdev) {
-						pdev->physical_slot = WORD(data+0x09);
-						pdev->smbios_type = 0;
-						pdev->smbios_instance = 0;
+						fill_one_slot_function(pdev, h);
+						pdev->uses_smbios |= HAS_SMBIOS_EXACT_MATCH;
 					}
+					fill_all_slot_functions(state, domain, bus, device, h);
 				}
 			}
 			break;
@@ -180,6 +153,12 @@ static void dmi_decode(struct dmi_header *h, u16 ver, const struct libbiosdevnam
 				pdev->smbios_enabled = !!(data[0x05] & 0x80);
 				pdev->smbios_type = data[0x05] & 0x7F;
 				pdev->smbios_instance = data[0x06];
+				pdev->uses_smbios |= HAS_SMBIOS_INSTANCE | HAS_SMBIOS_SLOT;
+				if (dmi_string(h, data[0x04])) {
+					pdev->smbios_label=strdup(dmi_string(h, data[0x04]));
+					pdev->uses_smbios |= HAS_SMBIOS_LABEL;
+				}
+				strip_right(pdev->smbios_label);
 			}
 			break;
 
