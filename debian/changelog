@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.10) unstable; urgency=low
+
+  * Merge upstream version 0.3.4.
+
+ -- Bob Gilligan <gilligan@vyatta.com>  Sun, 16 Jan 2011 23:08:08 -0800
+
 vyatta-biosdevname (0.9) unstable; urgency=low
 
   * new branch
