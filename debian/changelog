@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.8+mendocino2) unstable; urgency=low
+
+  * Merge upstream version 0.3.4.
+
+ -- Bob Gilligan <gilligan@vyatta.com>  Sun, 16 Jan 2011 22:44:42 -0800
+
 vyatta-biosdevname (0.8+mendocino1) unstable; urgency=low
 
   * new branch
