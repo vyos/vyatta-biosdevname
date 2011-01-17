@@ -105,7 +105,6 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 	
 	if((fd=open(devmem, O_RDONLY))==-1)
 	{
-		perror(devmem);
 		return NULL;
 	}
 	
@@ -129,8 +128,6 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 	mmp=mmap(0, mmoffset+len, PROT_READ, MAP_SHARED, fd, base-mmoffset);
 	if(mmp==MAP_FAILED)
 	{
-		fprintf(stderr, "%s: ", devmem);
-		perror("mmap");
 		free(p);
 		return NULL;
 	}

@@ -50,16 +50,11 @@ struct routing_table * pirq_alloc_read_table()
 	int fd=open("/dev/mem", O_RDONLY);
 
 	if(fd==-1)
-	{
-		perror("open(/dev/mem)");
 		return NULL;
-	}
 
 	mem = mmap(0, 64*1024, PROT_READ, MAP_SHARED, fd, 0xF0000L);
-	if (!mem) {
-		perror("mmap(/dev/mem)");
+	if (mem == (void *)-1LL)
 		goto out;
-	}
 
 	while( offset < 0xFFFF)
 	{
@@ -94,7 +89,8 @@ out:
 
 void pirq_free_table(struct routing_table *table)
 {
-	free(table);
+	if (table)
+		free(table);
 }
 
 

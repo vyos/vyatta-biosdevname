@@ -25,7 +25,7 @@ static struct network_device *add_interface(struct libbiosdevname_state *state,
 		return NULL;
 	memset(i, 0, sizeof(*i));
 	INIT_LIST_HEAD(&i->node);
-	snprintf(i->kernel_name, sizeof(i->kernel_name), name);
+	strncpy(i->kernel_name, name, sizeof(i->kernel_name));
 	list_add_tail(&i->node, &state->network_devices);
 	return i;
 }
@@ -96,10 +96,8 @@ int get_interfaces(struct libbiosdevname_state *state)
 		s = get_name(&name, line);
 		add_interface(state, name);
 	}
-	if (ferror(fh)) {
-		perror(_PATH_PROCNET_DEV);
+	if (ferror(fh))
 		err = -1;
-	}
 
 out:
 	free(line);
