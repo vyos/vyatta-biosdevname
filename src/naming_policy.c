@@ -11,97 +11,93 @@
 #include "naming_policy.h"
 #include "libbiosdevname.h"
 #include "state.h"
+#include "dmidecode/dmidecode.h"
 
 static void use_all_ethN(const struct libbiosdevname_state *state)
 {
 	struct bios_device *dev;
 	unsigned int i=0;
+	char buffer[IFNAMSIZ];
 
+	memset(buffer, 0, sizeof(buffer));
 	list_for_each_entry(dev, &state->bios_devices, node) {
-		if (dev->netdev)
-			snprintf(dev->bios_name, sizeof(dev->bios_name), "eth%u", i++);
+		if (dev->netdev) {
+			snprintf(buffer, sizeof(buffer), "eth%u", i++);
+			dev->bios_name = strdup(buffer);
+		}
 	}
 }
 
-static void use_kernel_names(const struct libbiosdevname_state *state)
+static void use_physical(const struct libbiosdevname_state *state, const char *prefix)
 {
 	struct bios_device *dev;
+	char buffer[IFNAMSIZ];
+	char location[IFNAMSIZ];
+	char port[IFNAMSIZ];
+	char interface[IFNAMSIZ];
+	unsigned int portnum=0;
+	int known=0;
+
+	memset(buffer, 0, sizeof(buffer));
+	memset(location, 0, sizeof(location));
+	memset(port, 0, sizeof(port));
+	memset(interface, 0, sizeof(interface));
 
 	list_for_each_entry(dev, &state->bios_devices, node) {
-		if (dev->netdev)
-			strncpy(dev->bios_name, dev->netdev->kernel_name, sizeof(dev->bios_name)-1);
-	}
-}
-
-
-static void pcmcia_names(struct bios_device *dev)
-{
-	snprintf(dev->bios_name, sizeof(dev->bios_name), "eth_pccard_%u.%u",
-		 dev->pcmciadev->socket, dev->pcmciadev->function);
-}
-
-static void use_embedded_ethN_slots_names(const struct libbiosdevname_state *state)
-{
-	struct bios_device *dev;
-	unsigned int i=0;
-
-	list_for_each_entry(dev, &state->bios_devices, node) {
+		known = 0;
 		if (is_pci(dev)) {
-			if (dev->pcidev->physical_slot == 0)
-				snprintf(dev->bios_name, sizeof(dev->bios_name), "eth%u", i++);
-			else if (dev->pcidev->physical_slot < INT_MAX)
-				snprintf(dev->bios_name, sizeof(dev->bios_name), "eth_s%d_%u",
-					 dev->pcidev->physical_slot,
-					 dev->pcidev->index_in_slot);
-			else if (dev->pcidev->physical_slot == INT_MAX)
-				snprintf(dev->bios_name, sizeof(dev->bios_name), "eth_unknown_%u", i++);
+			if (dev->pcidev->physical_slot == 0) { /* embedded devices only */
+				if (dev->pcidev->uses_sysfs & HAS_SYSFS_INDEX) {
+					portnum = dev->pcidev->sysfs_index;
+					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
+					known=1;
+				}
+				else if (dev->pcidev->uses_smbios & HAS_SMBIOS_INSTANCE && is_pci_smbios_type_ethernet(dev->pcidev)) {
+					portnum = dev->pcidev->smbios_instance;
+					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
+					known=1;
+				}
+				else if (dev->pcidev->embedded_index_valid) {
+					portnum = dev->pcidev->embedded_index;
+					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
+					known=1;
+				}
+			}
+			else if (dev->pcidev->physical_slot < PHYSICAL_SLOT_UNKNOWN) {
+				snprintf(location, sizeof(location), "pci%u", dev->pcidev->physical_slot);
+				if (!dev->pcidev->is_sriov_virtual_function)
+					portnum = dev->pcidev->index_in_slot;
+				else
+					portnum = dev->pcidev->pf->index_in_slot;
+				snprintf(port, sizeof(port), "#%u", portnum);
+				known=1;
+			}
+
+			if (dev->pcidev->is_sriov_virtual_function)
+				snprintf(interface, sizeof(interface), "_%u", dev->pcidev->vf_index);
+
+			if (known) {
+				snprintf(buffer, sizeof(buffer), "%s%s%s", location, port, interface);
+				dev->bios_name = strdup(buffer);
+			}
 		}
-		else if (is_pcmcia(dev))
-			pcmcia_names(dev);
 	}
 }
 
-static void use_all_names(const struct libbiosdevname_state *state)
+
+int assign_bios_network_names(const struct libbiosdevname_state *state, int policy, const char *prefix)
 {
-	struct bios_device *dev;
-	unsigned int i=0;
-
-	list_for_each_entry(dev, &state->bios_devices, node) {
-		if (is_pci(dev)) {
-			if (dev->pcidev->physical_slot < INT_MAX)
-				snprintf(dev->bios_name, sizeof(dev->bios_name), "eth_s%d_%u",
-					 dev->pcidev->physical_slot,
-					 dev->pcidev->index_in_slot);
-			else
-				snprintf(dev->bios_name, sizeof(dev->bios_name), "eth_unknown_%u", i++);
-		}
-		else if (is_pcmcia(dev))
-			pcmcia_names(dev);
+	int rc = 0;
+	switch (policy) {
+	case all_ethN:
+		use_all_ethN(state);
+		break;
+	case physical:
+	default:
+		use_physical(state, prefix);
+		break;
 	}
-}
 
-int assign_bios_network_names(const struct libbiosdevname_state *state, int sort, int policy)
-{
-	if (sort != nosort) {
-		switch (policy) {
-		case all_ethN:
-			use_all_ethN(state);
-			break;
-		case embedded_ethN_slots_names:
-			use_embedded_ethN_slots_names(state);
-			break;
-		case all_names:
-			use_all_names(state);
-			break;
-		case kernelnames:
-		default:
-			use_kernel_names(state);
-			break;
-		}
-	}
-	else
-		use_kernel_names(state);
-
-	return 0;
+	return rc;
 }
 

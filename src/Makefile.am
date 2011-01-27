@@ -1,10 +1,9 @@
 INCLUDES = -I..
 AM_CFLAGS = -Wall -fno-strict-aliasing
 
-srcPath=src/
 man_MANS = biosdevname.1
 
-sbin_PROGRAMS = src/biosdevname src/biosdevnameS
+sbin_PROGRAMS = src/biosdevname src/dump_pirq
 src_biosdevname_SOURCES =  \
 	src/bios_dev_name.c \
 	src/bios_device.c \
@@ -13,17 +12,16 @@ src_biosdevname_SOURCES =  \
 	src/eths.c \
 	src/read_proc.c \
 	src/naming_policy.c \
-	src/pcmcia.c \
-	src/read-cis.c \
-	src/parse_cis.c \
+	src/sysfs.c \
 	src/dmidecode/dmidecode.c \
 	src/dmidecode/dmioem.c \
 	src/dmidecode/util.c
+src_biosdevname_LDADD = -lz -lpci
 
-src_biosdevnameS_SOURCES =  $(src_biosdevname_SOURCES)
-src_biosdevnameS_LDFLAGS = -all-static
+src_dump_pirq_SOURCES = src/pirq.c
+src_dump_pirq_CFLAGS = -DUNIT_TEST_PIRQ
 
-EXTRA_DIST = \
+EXTRA_DIST += \
 	src/bios_dev_name.h \
 	src/bios_device.h \
 	src/pirq.h \
@@ -33,9 +31,8 @@ EXTRA_DIST = \
 	src/ethtool-copy.h \
 	src/list.h \
 	src/naming_policy.h \
-	src/pcmcia.h \
-	src/cistpl.h \
 	src/state.h \
+	src/sysfs.h \
 	src/libbiosdevname.h \
 	src/dmidecode/config.h \
 	src/dmidecode/dmidecode.h \

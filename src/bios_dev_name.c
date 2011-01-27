@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "libbiosdevname.h"
 #include "bios_dev_name.h"
@@ -19,27 +21,23 @@ static void usage(void)
 	fprintf(stderr, " Options:\n");
 	fprintf(stderr, "   -i        or --interface           treat [args] as ethernet devs\n");
 	fprintf(stderr, "   -d        or --debug               enable debugging\n");
-	fprintf(stderr, "   -n        or --nosort              don't sort the PCI device list breadth-first\n");
-	fprintf(stderr, "   --policy [kernelnames | all_ethN | all_names | embedded_ethN_slots_names]\n");
+	fprintf(stderr, "   --policy [physical | all_ethN ]\n");
+	fprintf(stderr, "   --prefix [string]                  string use for embedded NICs (default='em')\n");
 	fprintf(stderr, " Example:  biosdevname -i eth0\n");
-	fprintf(stderr, "  returns: eth0\n");
-	fprintf(stderr, "  when the BIOS name and kernel name are both eth0.\n");
-	fprintf(stderr, " --nosort implies --policy kernelnames.\n");
+	fprintf(stderr, "  returns: em1\n");
+	fprintf(stderr, "  when eth0 is an embedded NIC with label '1' on the chassis.\n");
 	fprintf(stderr, " You must be root to run this, as it must read from /dev/mem.\n");
 }
 
 static int
 set_policy(const char *arg)
 {
-	int rc = all_ethN;
-	if (!strncmp("kernelnames", arg, sizeof("kernelnames")))
-		rc = kernelnames;
+	int rc = physical;
+
+	if (!strncmp("physical", arg, sizeof("physical")))
+		rc = physical;
 	else if (!strncmp("all_ethN", arg, sizeof("all_ethN")))
 		rc = all_ethN;
-	else if (!strncmp("all_names", arg, sizeof("all_names")))
-		rc = all_names;
-	else if (!strncmp("embedded_ethN_slots_names", arg, sizeof("embedded_ethN_slots_names")))
-		rc = embedded_ethN_slots_names;
 	return rc;
 }
 
@@ -55,8 +53,8 @@ parse_opts(int argc, char **argv)
 		{
 			{"debug",             no_argument, 0, 'd'},
 			{"interface",         no_argument, 0, 'i'},
-			{"nosort",            no_argument, 0, 'n'},
 			{"policy",      required_argument, 0, 'p'},
+			{"prefix",      required_argument, 0, 'P'},
 			{0, 0, 0, 0}
 		};
 		c = getopt_long(argc, argv,
@@ -71,11 +69,11 @@ parse_opts(int argc, char **argv)
 		case 'i':
 			opts.interface = 1;
 			break;
-		case 'n':
-			opts.sortroutine = nosort;
-			break;
 		case 'p':
 			opts.namingpolicy = set_policy(optarg);
+			break;
+		case 'P':
+			opts.prefix = optarg;
 			break;
 		default:
 			usage();
@@ -89,8 +87,19 @@ parse_opts(int argc, char **argv)
 		opts.optind = optind;
 	}
 
-	if (opts.sortroutine == nosort)
-		opts.namingpolicy = kernelnames;
+	if (opts.prefix == NULL)
+		opts.prefix = "em";
+}
+
+static int
+running_as_root(void)
+{
+	uid_t uid = geteuid();
+	if (uid != 0) {
+		fprintf(stderr, "This program must be run as root.\n");
+		return 0;
+	}
+	return 1;
 }
 
 int main(int argc, char *argv[])
@@ -100,9 +109,11 @@ int main(int argc, char *argv[])
 	void *cookie = NULL;
 
 	parse_opts(argc, argv);
-	cookie = setup_bios_devices(opts.sortroutine, opts.namingpolicy);
+
+	if (!running_as_root())
+		exit(3);
+	cookie = setup_bios_devices(opts.namingpolicy, opts.prefix);
 	if (!cookie) {
-		usage();
 		rc = 1;
 		goto out;
 	}

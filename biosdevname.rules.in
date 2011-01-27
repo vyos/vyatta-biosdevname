@@ -1,7 +1,10 @@
-KERNEL!="eth*", GOTO="biosdevname_end"
-ACTION!="add",  GOTO="biosdevname_end"
-NAME=="?*",     GOTO="biosdevname_end"
+SUBSYSTEM!="net", GOTO="netdevicename_end"
+KERNEL!="eth*",   GOTO="netdevicename_end"
+ACTION!="add",    GOTO="netdevicename_end"
+NAME=="?*",       GOTO="netdevicename_end"
 
-PROGRAM="/sbin/biosdevname --policy=all_ethN -i %k", ENV{INTERFACE_NAME}="%c"
+# using NAME= instead of setting INTERFACE_NAME, so that persistent
+# names aren't generated for these devices, they are "named" on each boot.
+PROGRAM="/sbin/biosdevname --policy physical -i %k", NAME="%c",  OPTIONS+="string_escape=replace"
 
-LABEL="biosdevname_end"
+LABEL="netdevicename_end"
