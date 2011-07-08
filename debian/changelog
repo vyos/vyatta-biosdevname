@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.10+napa1) unstable; urgency=low
+
+  * new branch
+
+ -- Deepti Kulkarni <deepti@vyatta.com>  Thu, 07 Jul 2011 20:46:33 -0700
+
 vyatta-biosdevname (0.10) unstable; urgency=low
 
   * Merge upstream version 0.3.4.
