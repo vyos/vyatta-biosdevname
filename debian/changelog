@@ -1,3 +1,9 @@
+vyatta-biosdevname (0.11+oxnard1) unstable; urgency=low
+
+  * new branch
+
+ -- Deepti Kulkarni <deepti@vyatta.com>  Sat, 03 Mar 2012 02:22:34 -0800
+
 vyatta-biosdevname (0.11) unstable; urgency=low
 
   * new branch
