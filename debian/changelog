@@ -1,3 +1,9 @@
+vyatta-biosdevname (1:0.3.11-vyatta1) unstable; urgency=low
+
+  * Update to biosdevname 0.3.11
+
+ -- Stephen Hemminger <shemminger@vyatta.com>  Fri, 02 Mar 2012 16:47:48 -0800
+
 vyatta-biosdevname (0.11) unstable; urgency=low
 
   * new branch
