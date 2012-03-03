@@ -18,21 +18,28 @@
 #include <sys/mman.h>
 #include "pirq.h"
 
+extern int nopirq;
+
 /* If unknown, use INT_MAX so they get sorted last */
-int pirq_pci_dev_to_slot(struct routing_table *table, int bus, int dev)
+int pirq_pci_dev_to_slot(struct routing_table *table, int domain, int bus, int dev)
 {
 	int i, num_slots;
 	struct slot_entry *slot;
 
 	if (!table)
 		return INT_MAX;
+	if (domain != 0) /* can't represent non-zero domains in PIRQ */
+		return INT_MAX;
 
 	num_slots = (table->size - 32) / sizeof(*slot);
 	for (i=0; i<num_slots; i++) {
 		slot = &table->slot[i];
 		if (slot->bus == bus &&
-		    PCI_DEVICE(slot->device) == dev)
+		    PCI_DEVICE(slot->device) == dev) {
+		  	if (slot->slot >= '1' && slot->slot <= '9')
+				return slot->slot - '0';
 			return slot->slot;
+		}
 	}
 	return INT_MAX;
 }
@@ -47,8 +54,13 @@ struct routing_table * pirq_alloc_read_table()
 	int i;
 	void *mem;
 	off_t offset=0L;
-	int fd=open("/dev/mem", O_RDONLY);
+	int fd;
 
+	/* Skip PIRQ table parsing */
+	if (nopirq) {
+		return NULL;
+	}
+	fd = open("/dev/mem", O_RDONLY);
 	if(fd==-1)
 		return NULL;
 
@@ -63,9 +75,16 @@ struct routing_table * pirq_alloc_read_table()
 			table = (struct routing_table *)(mem+offset);
 			size = table->size;
 			/* quick sanity checks */
+			if (size == 0) {
+				table = NULL;
+				break;
+			}
 			/* Version must be 1.0 */
-			if (! (table->version >> 8)==1 && 
-			      (table->version && 0xFF) == 0) break;
+			if (!((table->version >> 8) == 1 &&
+			      (table->version & 0xFF) == 0)) {
+				table = NULL;
+				break;
+			}
 
 			table = malloc(size);
 			if (!table) break;
@@ -123,7 +142,7 @@ pirq_unparse_routing_table(struct routing_table *table)
 	printf("Bus      : %x\n", table->router_bus);
 	printf("DevFn    : %x\n", table->router_devfn);
 	printf("Exclusive IRQs : %x\n", table->exclusive_irqs);
-	printf("Compatable Router: %x\n", table->compatable_router);
+	printf("Compatible Router: %x\n", table->compatable_router);
 
 	num_slots = (table->size - 32) / sizeof(*slot);
 	slot = &table->slot[0];

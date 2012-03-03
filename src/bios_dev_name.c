@@ -7,11 +7,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "libbiosdevname.h"
 #include "bios_dev_name.h"
 
 static struct bios_dev_name_opts opts;
+int nopirq;
+int smver_mjr;
+int smver_mnr;
 
 static void usage(void)
 {
@@ -21,6 +26,8 @@ static void usage(void)
 	fprintf(stderr, "   -d        or --debug               enable debugging\n");
 	fprintf(stderr, "   --policy [physical | all_ethN ]\n");
 	fprintf(stderr, "   --prefix [string]                  string use for embedded NICs (default='em')\n");
+	fprintf(stderr, "   --smbios [x.y]		       Require SMBIOS x.y or greater\n");
+	fprintf(stderr, "   --nopirq			       Don't use $PIR table for slot numbers\n");
 	fprintf(stderr, " Example:  biosdevname -i eth0\n");
 	fprintf(stderr, "  returns: em1\n");
 	fprintf(stderr, "  when eth0 is an embedded NIC with label '1' on the chassis.\n");
@@ -53,6 +60,8 @@ parse_opts(int argc, char **argv)
 			{"interface",         no_argument, 0, 'i'},
 			{"policy",      required_argument, 0, 'p'},
 			{"prefix",      required_argument, 0, 'P'},
+			{"nopirq",	      no_argument, 0, 'x'},
+			{"smbios",	required_argument, 0, 's'},
 			{0, 0, 0, 0}
 		};
 		c = getopt_long(argc, argv,
@@ -73,6 +82,12 @@ parse_opts(int argc, char **argv)
 		case 'P':
 			opts.prefix = optarg;
 			break;
+		case 's':
+			sscanf(optarg, "%u.%u", &smver_mjr, &smver_mnr);
+			break;
+		case 'x':
+			nopirq = 1;
+			break;
 		default:
 			usage();
 			exit(1);
@@ -89,6 +104,44 @@ parse_opts(int argc, char **argv)
 		opts.prefix = "em";
 }
 
+static u_int32_t
+cpuid (u_int32_t eax, u_int32_t ecx)
+{
+    asm volatile (
+        "xor %%ebx, %%ebx; cpuid"
+        : "=a" (eax),  "=c" (ecx)
+        : "a" (eax)
+	: "%ebx", "%edx");
+    return ecx;
+}
+
+/*
+  Algorithm suggested by:
+  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1009458
+*/
+
+static int
+running_in_virtual_machine (void)
+{
+    u_int32_t eax=1U, ecx=0U;
+
+    ecx = cpuid (eax, ecx);
+    if (ecx & 0x80000000U)
+       return 1;
+    return 0;
+}
+
+static int
+running_as_root(void)
+{
+	uid_t uid = geteuid();
+	if (uid != 0) {
+		fprintf(stderr, "This program must be run as root.\n");
+		return 0;
+	}
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	int i, rc=0;
@@ -96,6 +149,11 @@ int main(int argc, char *argv[])
 	void *cookie = NULL;
 
 	parse_opts(argc, argv);
+
+	if (!running_as_root())
+		exit(3);
+	if (running_in_virtual_machine())
+		exit(4);
 	cookie = setup_bios_devices(opts.namingpolicy, opts.prefix);
 	if (!cookie) {
 		rc = 1;

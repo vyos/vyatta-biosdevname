@@ -3,7 +3,7 @@
 # vim:tw=0:ts=8:sw=8:et
 
 AC_PREREQ(2.59)
-AC_INIT([biosdevname],[0.3.4],[Matt_Domsch@dell.com])
+AC_INIT([biosdevname],[0.3.11],[Jordan_Hargrave@dell.com])
 AC_LANG([C])
 AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_SRCDIR([src/read_proc.c])
@@ -24,9 +24,9 @@ AC_CHECK_FUNCS([realpath])
 # Checks for libraries.
 AC_CHECK_LIB([c], [snprintf])
 # libz has to come before libpci because libpci needs it now.
-AC_CHECK_LIB([z], [gzopen], [],
+AC_CHECK_LIB([z], [gzopen], [true],
 	    [AC_MSG_ERROR([You must install zlib-devel (Fedora/Red Hat/SuSE), libzip-dev (Debian/Ubuntu), or equivalent])])
-AC_CHECK_LIB([pci], [pci_alloc], [],
+AC_CHECK_LIB([pci], [pci_alloc], [true],
 	    [AC_MSG_ERROR([You must install pciutils-devel (Fedora/Red Hat/SuSE), pciutils-dev (Debian/Ubuntu), or equivalent])],
 	    -lz)
 
@@ -68,18 +68,21 @@ AC_CHECK_FUNCS([dup2 gettimeofday memset munmap select socket strcasecmp strchr 
 
 # this is ugly, but accounts for SLES 10, Red Hat/Fedora, and Ubuntu
 # handles default udev rules as of udev 114 or thereabouts
-RULEDEST=71-biosdevname.rules
+RULEDEST=/lib/udev/rules.d/71-biosdevname.rules
+
 if [[ -e /etc/udev/rules.d/60-net.rules ]]; then
-     # RHEL / Fedora
-     RULEDEST=60-biosdevname.rules
+     # RHEL 5 / Fedora
+     RULEDEST=/etc/udev/rules.d/60-biosdevname.rules
 elif [[ -e /etc/udev/rules.d/31-network.rules ]]; then
      # SLES 10
-     RULEDEST=31-biosdevname.rules
+     RULEDEST=/etc/udev/rules.d/31-biosdevname.rules
 elif [[ -e /etc/udev/rules.d/25-iftab.rules ]]; then
-     # Ubuntu
-     RULEDEST=25-biosdevname.rules
+     # older Ubuntu
+     RULEDEST=/etc/udev/rules.d/25-biosdevname.rules
 fi
+RULEDIR=$(dirname $RULEDEST)
 AC_SUBST(RULEDEST, $RULEDEST)
+AC_SUBST(RULEDIR,  $RULEDIR)
 
 echo "PACKAGE_NAME='$PACKAGE_NAME'" > version
 echo "PACKAGE_VERSION='$PACKAGE_VERSION'" >> version
