@@ -1,9 +1,9 @@
-vyatta-biosdevname (1:0.3.11-vyatta2) unstable; urgency=low
+vyatta-biosdevname (1:0.3.11-vyatta3) unstable; urgency=low
 
   * Update to biosdevname 0.3.11
   * Fix rules directory path
 
- -- Stephen Hemminger <shemminger@vyatta.com>  Sat, 03 Mar 2012 09:56:43 -0800
+ -- Stephen Hemminger <shemminger@vyatta.com>  Sat, 03 Mar 2012 09:57:37 -0800
 
 vyatta-biosdevname (0.12) unstable; urgency=low
 
