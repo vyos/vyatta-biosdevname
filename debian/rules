@@ -76,7 +76,7 @@ install: build
 	rm -f $(PKGDIR)/sbin/biosdevnameS
 
 	# We don't use the rules file from this package
-	rm -rf $(PKGDIR)/etc/udev/rules.d
+	rm -rf $(PKGDIR)/lib/udev/rules.d
 
 
 # Build architecture-independent files here.
