@@ -3,7 +3,7 @@ AM_CFLAGS = -Wall -fno-strict-aliasing
 
 man_MANS = biosdevname.1
 
-sbin_PROGRAMS = src/biosdevname src/biosdevnameS
+sbin_PROGRAMS = src/biosdevname
 src_biosdevname_SOURCES =  \
 	src/bios_dev_name.c \
 	src/bios_device.c \
@@ -16,9 +16,7 @@ src_biosdevname_SOURCES =  \
 	src/dmidecode/dmidecode.c \
 	src/dmidecode/dmioem.c \
 	src/dmidecode/util.c
-
-src_biosdevnameS_SOURCES =  $(src_biosdevname_SOURCES)
-src_biosdevnameS_LDFLAGS = -all-static
+src_biosdevname_LDADD = -lz -lpci
 
 EXTRA_DIST += \
 	src/bios_dev_name.h \

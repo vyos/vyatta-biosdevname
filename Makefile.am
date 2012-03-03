@@ -8,12 +8,11 @@ dist_noinst_DATA = biosdevname.rules.in biosdevname.spec.fedora biosdevname.spec
 
 CLEANFILES = version
 install-data-local:
-	mkdir -p $(DESTDIR)@sysconfdir@/udev/rules.d
-	$(INSTALL_DATA) $(top_srcdir)/biosdevname.rules.in $(DESTDIR)@sysconfdir@/udev/rules.d/71-netdevice.rules
-	mkdir -p $(DESTDIR)/lib/udev
+	mkdir -p $(DESTDIR)@RULEDIR@
+	$(INSTALL_DATA) $(top_srcdir)/biosdevname.rules.in $(DESTDIR)@RULEDEST@
 
 uninstall-local:
-	rm -f $(DESTDIR)@sysconfdir@/udev/rules.d/@RULEDEST@
+	rm -f $(DESTDIR)@RULEDEST@
 
 include src/Makefile.am
 

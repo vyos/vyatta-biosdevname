@@ -37,44 +37,49 @@ static void use_physical(const struct libbiosdevname_state *state, const char *p
 	char interface[IFNAMSIZ];
 	unsigned int portnum=0;
 	int known=0;
-
-	memset(buffer, 0, sizeof(buffer));
-	memset(location, 0, sizeof(location));
-	memset(port, 0, sizeof(port));
-	memset(interface, 0, sizeof(interface));
+	struct pci_device *vf;
 
 	list_for_each_entry(dev, &state->bios_devices, node) {
 		known = 0;
+		memset(buffer, 0, sizeof(buffer));
+		memset(location, 0, sizeof(location));
+		memset(port, 0, sizeof(port));
+		memset(interface, 0, sizeof(interface));
+
 		if (is_pci(dev)) {
+			vf = dev->pcidev;
 			if (dev->pcidev->physical_slot == 0) { /* embedded devices only */
-				if (dev->pcidev->uses_sysfs & HAS_SYSFS_INDEX) {
-					portnum = dev->pcidev->sysfs_index;
-					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
-					known=1;
-				}
-				else if (dev->pcidev->uses_smbios & HAS_SMBIOS_INSTANCE && is_pci_smbios_type_ethernet(dev->pcidev)) {
-					portnum = dev->pcidev->smbios_instance;
-					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
-					known=1;
-				}
-				else if (dev->pcidev->embedded_index_valid) {
-					portnum = dev->pcidev->embedded_index;
+				portnum = INT_MAX;
+				/* Use master VPD device if available */
+				if (vf->vpd_pf)
+					vf = vf->vpd_pf;
+				if (vf->uses_sysfs & HAS_SYSFS_INDEX)
+					portnum = vf->sysfs_index;
+				else if (vf->uses_smbios & HAS_SMBIOS_INSTANCE && is_pci_smbios_type_ethernet(vf))
+					portnum = vf->smbios_instance;
+				else if (vf->embedded_index_valid)
+					portnum = vf->embedded_index;
+				if (portnum != INT_MAX) {	
 					snprintf(location, sizeof(location), "%s%u", prefix, portnum);
 					known=1;
 				}
 			}
 			else if (dev->pcidev->physical_slot < PHYSICAL_SLOT_UNKNOWN) {
-				snprintf(location, sizeof(location), "pci%u", dev->pcidev->physical_slot);
-				if (!dev->pcidev->is_sriov_virtual_function)
-					portnum = dev->pcidev->index_in_slot;
+				snprintf(location, sizeof(location), "p%u", dev->pcidev->physical_slot);
+				if (dev->pcidev->vpd_port < INT_MAX)
+					portnum = dev->pcidev->vpd_port;
+				else if (!dev->pcidev->is_sriov_virtual_function)
+				  	portnum = dev->pcidev->index_in_slot;
 				else
 					portnum = dev->pcidev->pf->index_in_slot;
-				snprintf(port, sizeof(port), "#%u", portnum);
+				snprintf(port, sizeof(port), "p%u", portnum);
 				known=1;
 			}
 
 			if (dev->pcidev->is_sriov_virtual_function)
 				snprintf(interface, sizeof(interface), "_%u", dev->pcidev->vf_index);
+			else if (dev->pcidev->vpd_pfi < INT_MAX)
+				snprintf(interface, sizeof(interface), "_%u", dev->pcidev->vpd_pfi);
 
 			if (known) {
 				snprintf(buffer, sizeof(buffer), "%s%s%s", location, port, interface);
