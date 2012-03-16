@@ -15,6 +15,7 @@
 
 static struct bios_dev_name_opts opts;
 int nopirq;
+int allow_vm;
 int smver_mjr;
 int smver_mnr;
 
@@ -27,6 +28,7 @@ static void usage(void)
 	fprintf(stderr, "   --policy [physical | all_ethN ]\n");
 	fprintf(stderr, "   --prefix [string]                  string use for embedded NICs (default='em')\n");
 	fprintf(stderr, "   --smbios [x.y]		       Require SMBIOS x.y or greater\n");
+	fprintf(stderr, "   --invm                             Still run in VM\n");
 	fprintf(stderr, "   --nopirq			       Don't use $PIR table for slot numbers\n");
 	fprintf(stderr, " Example:  biosdevname -i eth0\n");
 	fprintf(stderr, "  returns: em1\n");
@@ -61,6 +63,7 @@ parse_opts(int argc, char **argv)
 			{"policy",      required_argument, 0, 'p'},
 			{"prefix",      required_argument, 0, 'P'},
 			{"nopirq",	      no_argument, 0, 'x'},
+			{"invm",              no_argument, 0, 'V'},
 			{"smbios",	required_argument, 0, 's'},
 			{0, 0, 0, 0}
 		};
@@ -87,6 +90,9 @@ parse_opts(int argc, char **argv)
 			break;
 		case 'x':
 			nopirq = 1;
+			break;
+		case 'V':
+			allow_vm = 1;
 			break;
 		default:
 			usage();
@@ -152,7 +158,7 @@ int main(int argc, char *argv[])
 
 	if (!running_as_root())
 		exit(3);
-	if (running_in_virtual_machine())
+	if (!allow_vm && running_in_virtual_machine())
 		exit(4);
 	cookie = setup_bios_devices(opts.namingpolicy, opts.prefix);
 	if (!cookie) {
