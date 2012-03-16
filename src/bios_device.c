@@ -89,6 +89,33 @@ char * kern_to_bios(void *cookie,
 	return NULL;
 }
 
+char * pci_to_bios(void *cookie, const char *s)
+{
+	struct libbiosdevname_state *state = cookie;
+	struct bios_device *dev;
+	int domain=0, bus=0, device=0, func=0;
+
+	if (parse_pci_name(s, &domain, &bus, &device, &func)) {
+		fprintf(stderr, "%s is not a valid pci device name\n", s);
+		return NULL;
+	}
+
+	if (!state)
+		return NULL;
+
+	list_for_each_entry(dev, &state->bios_devices, node) {
+		const struct pci_device *pci = dev->pcidev;
+
+		if(pci &&
+		   pci->pci_dev->domain == domain &&
+		   pci->pci_dev->bus == bus &&
+		   pci->pci_dev->dev == device &&
+		   pci->pci_dev->func == func)
+			return dev->bios_name;
+	}
+	return NULL;
+}
+
 void unparse_bios_device_list(void *cookie)
 {
 	struct libbiosdevname_state *state = cookie;
@@ -220,8 +247,6 @@ static void match_eth_and_pci_devs(struct libbiosdevname_state *state)
 
 		unparse_pci_name(pci_name, sizeof(pci_name), p->pci_dev);
 		n = find_net_device_by_bus_info(state, pci_name);
-		if (!n)
-			continue;
 
 		b = malloc(sizeof(*b));
 		if (!b)
@@ -230,7 +255,8 @@ static void match_eth_and_pci_devs(struct libbiosdevname_state *state)
 		INIT_LIST_HEAD(&b->node);
 		b->pcidev = p;
 		b->netdev = n;
-		claim_netdev(b->netdev);
+		if (n)
+			claim_netdev(b->netdev);
 		list_add(&b->node, &state->bios_devices);
 	}
 }

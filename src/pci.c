@@ -365,7 +365,7 @@ static int read_virtfn_index(unsigned int *index, const struct pci_dev *pdev)
 	return rc;
 }
 
-static int parse_pci_name(const char *s, int *domain, int *bus, int *dev, int *func)
+int parse_pci_name(const char *s, int *domain, int *bus, int *dev, int *func)
 {
 	int err;
 /* The domain part was added in 2.6 kernels.  Test for that first. */

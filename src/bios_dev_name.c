@@ -24,6 +24,7 @@ static void usage(void)
 	fprintf(stderr, "Usage:  biosdevname [options] [args]...\n");
 	fprintf(stderr, " Options:\n");
 	fprintf(stderr, "   -i        or --interface           treat [args] as ethernet devs\n");
+	fprintf(stderr, "   --pci-spec                         treat [args] as PCI specification\n");
 	fprintf(stderr, "   -d        or --debug               enable debugging\n");
 	fprintf(stderr, "   --policy [physical | all_ethN ]\n");
 	fprintf(stderr, "   --prefix [string]                  string use for embedded NICs (default='em')\n");
@@ -34,6 +35,12 @@ static void usage(void)
 	fprintf(stderr, "  returns: em1\n");
 	fprintf(stderr, "  when eth0 is an embedded NIC with label '1' on the chassis.\n");
 	fprintf(stderr, " You must be root to run this, as it must read from /dev/mem.\n");
+}
+
+static void conflict(void)
+{
+	fprintf(stderr, "can't use both interface and pci options\n");
+	exit(1);
 }
 
 static int
@@ -65,6 +72,7 @@ parse_opts(int argc, char **argv)
 			{"nopirq",	      no_argument, 0, 'x'},
 			{"invm",              no_argument, 0, 'V'},
 			{"smbios",	required_argument, 0, 's'},
+			{"pci-spec",          no_argument, 0, 'S'},
 			{0, 0, 0, 0}
 		};
 		c = getopt_long(argc, argv,
@@ -77,7 +85,14 @@ parse_opts(int argc, char **argv)
 			opts.debug = 1;
 			break;
 		case 'i':
+			if (opts.usepci)
+				conflict();
 			opts.interface = 1;
+			break;
+		case 'S':
+			if (opts.interface)
+				conflict();
+			opts.usepci = 1;
 			break;
 		case 'p':
 			opts.namingpolicy = set_policy(optarg);
@@ -172,21 +187,29 @@ int main(int argc, char *argv[])
 		goto out_cleanup;
 	}
 
-
-	if (!opts.interface) {
+	if (opts.interface) {
+		for (i=0; i<opts.argc; i++) {
+			name = kern_to_bios(cookie, opts.argv[i]);
+			if (name)
+				printf("%s\n", name);
+			else
+				rc |= 2; /* one or more given devices weren't found */
+		}
+	} else if(opts.usepci) {
+		for (i=0; i<opts.argc; i++) {
+			name = pci_to_bios(cookie, opts.argv[i]);
+			if (name)
+				printf("%s\n", name);
+			else
+				rc |= 2;
+		}
+	} else {
 		fprintf(stderr, "Unknown device type, try passing an option like -i\n");
 		rc = 1;
 		goto out_usage;
 	}
 
-	for (i=0; i<opts.argc; i++) {
-		name = kern_to_bios(cookie, opts.argv[i]);
-		if (name) {
-			printf("%s\n", name);
-		}
-		else
-			rc |= 2; /* one or more given devices weren't found */
-	}
+
 	goto out_cleanup;
 
  out_usage:

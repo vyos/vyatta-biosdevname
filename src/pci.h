@@ -57,6 +57,7 @@ extern void free_pci_devices(struct libbiosdevname_state *state);
 extern struct pci_device * find_dev_by_pci(const struct libbiosdevname_state *state, const struct pci_dev *p);
 extern struct pci_device * find_pci_dev_by_pci_addr(const struct libbiosdevname_state *state, const int domain, const int bus, const int device, const int func);
 extern struct pci_device * find_dev_by_pci_name(const struct libbiosdevname_state *state, const char *s);
+extern int parse_pci_name(const char *s, int *domain, int *bus, int *dev, int *func);
 extern int unparse_pci_device(char *buf, const int size, const struct pci_device *p);
 extern int unparse_pci_name(char *buf, int size, const struct pci_dev *pdev);
 

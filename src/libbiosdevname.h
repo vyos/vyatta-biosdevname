@@ -14,6 +14,7 @@ enum namingpolicy {
 extern void * setup_bios_devices(int namingpolicy, const char *prefix);
 extern void cleanup_bios_devices(void *cookie);
 extern char * kern_to_bios(void *cookie, const char *devname);
+extern char * pci_to_bios(void *cookie, const char *spec);
 extern void unparse_bios_devices(void *cookie);
 extern void unparse_bios_device_by_name(void *cookie, const char *name);
 

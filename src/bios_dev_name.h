@@ -15,6 +15,6 @@ struct bios_dev_name_opts {
 	const char *prefix;
 	unsigned int debug:1;
 	unsigned int interface:1;
+	unsigned int usepci:1;
 };
-
 #endif /* GLUE_H_INCLUDED */
