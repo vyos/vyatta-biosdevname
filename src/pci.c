@@ -263,6 +263,7 @@ static int pci_find_capability(struct pci_dev *p, int cap)
 static struct pci_device *
 find_parent(struct libbiosdevname_state *state, struct pci_device *dev);
 
+#if 0
 static int pcie_get_slot(struct libbiosdevname_state *state, struct pci_device *p)
 {
   	int pos;
@@ -280,6 +281,7 @@ static int pcie_get_slot(struct libbiosdevname_state *state, struct pci_device *
 	}
 	return PHYSICAL_SLOT_UNKNOWN;
 }
+#endif
 
 static int read_pci_sysfs_path(char *buf, size_t bufsize, const struct pci_dev *pdev)
 {
@@ -498,8 +500,11 @@ static void dev_to_slot(struct libbiosdevname_state *state, struct pci_device *d
 	int slot;
 	do {
 		slot = pci_dev_to_slot(state, d);
+#if 0
+		/* PCI-E slot detection is broken?? */
 		if (slot == PHYSICAL_SLOT_UNKNOWN)
 		  	slot = pcie_get_slot(state, d);
+#endif
 		if (slot == PHYSICAL_SLOT_UNKNOWN)
 			slot = pirq_dev_to_slot(state, d);
 		if (slot == PHYSICAL_SLOT_UNKNOWN)
