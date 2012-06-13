@@ -1,3 +1,9 @@
+vyatta-biosdevname (1:0.3.11-vyatta5) unstable; urgency=low
+
+  * PCI-E physical slot number doesn't work right
+
+ -- Stephen Hemminger <shemminger@vyatta.com>  Wed, 13 Jun 2012 00:04:56 -0700
+
 vyatta-biosdevname (1:0.3.11-vyatta4) unstable; urgency=low
 
   * remove unused flags
