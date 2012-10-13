@@ -1,3 +1,9 @@
+vyatta-biosdevname (1:0.3.11-vyatta5+pacifica1) unstable; urgency=low
+
+  * new branch
+
+ -- John Southworth <john.southworth@vyatta.com>  Fri, 12 Oct 2012 18:45:48 -0700
+
 vyatta-biosdevname (1:0.3.11-vyatta5) unstable; urgency=low
 
   * PCI-E physical slot number doesn't work right
