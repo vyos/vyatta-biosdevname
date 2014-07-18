@@ -125,6 +125,8 @@ parse_opts(int argc, char **argv)
 		opts.prefix = "em";
 }
 
+#if defined(__x86_64__) || defined(__i386__)
+
 static u_int32_t
 cpuid (u_int32_t eax, u_int32_t ecx)
 {
@@ -151,6 +153,14 @@ running_in_virtual_machine (void)
        return 1;
     return 0;
 }
+
+#else   /* ! __x86_64__ */
+static int
+running_in_virtual_machine (void)
+{
+    return 1;
+}
+#endif
 
 static int
 running_as_root(void)
