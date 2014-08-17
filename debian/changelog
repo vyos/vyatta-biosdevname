@@ -1,3 +1,13 @@
+vyatta-biosdevname (1:0.3.11+vyos1+helium2) unstable; urgency=low
+
+  [ Kim Hagen ]
+  * Skip checking if we are in a vm if cpu is other than x86_64.
+
+  [ Daniil Baturin ]
+  * Update maintainer address.
+
+ -- Daniil Baturin <daniil@baturin.org>  Sun, 17 Aug 2014 23:49:28 +0200
+
 vyatta-biosdevname (1:0.3.11+vyos1+helium1) unstable; urgency=low
 
   * New branch
