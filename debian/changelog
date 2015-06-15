@@ -1,3 +1,9 @@
+vyatta-biosdevname (1:0.3.11+vyos2+lithium2) unstable; urgency=low
+
+  * vyatta-biosdevname: update dh_gencontrol with new development build flag
+
+ -- Alex Harpin <development@landsofshadow.co.uk>  Mon, 15 Jun 2015 07:36:15 +0100
+ 
 vyatta-biosdevname (1:0.3.11+vyos2+lithium1) unstable; urgency=low
 
   * New branch
