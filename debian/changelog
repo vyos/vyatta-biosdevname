@@ -1,3 +1,9 @@
+vyatta-biosdevname (1:0.3.11+vyos2+current1) unstable; urgency=medium
+
+  * New branch
+
+ -- Kim Hagen <kim.sidney@gmail.com>  Sun, 24 Jan 2016 14:46:43 -0500
+
 vyatta-biosdevname (1:0.3.11+vyos2+lithium2) unstable; urgency=low
 
   * vyatta-biosdevname: update dh_gencontrol with new development build flag
