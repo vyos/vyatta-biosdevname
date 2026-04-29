@@ -48,7 +48,3 @@ Mirror twin: `VyOS-Networks/vyatta-biosdevname`. Canonical side is here. The VyO
 
 - Renaming the source/binary package from upstream `biosdevname` to `vyatta-biosdevname` is intentional — don't revert.
 - Any change here can affect interface naming on every VyOS install; coordinate with `vyos-1x` if you change rule names.
-
----
-
-This file is mirrored on Confluence: [`vyos/vyatta-biosdevname`](https://internal.confluence.vyos.com/wiki/spaces/VYOS/pages/818544818). The Confluence page also carries the per-repo audit data (settings, workflows, secret counts, hygiene) that complements this CLAUDE.md. Edit either side; resync via the documentation pipeline.
