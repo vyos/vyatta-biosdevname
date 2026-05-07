@@ -42,7 +42,7 @@ Listed in `VyOS-Networks/vyos-build-packages/repos.toml`. Pulled into the ISO vi
 
 ## Mirror relationship
 
-Mirror twin: `VyOS-Networks/vyatta-biosdevname`. Canonical side is here. The VyOS-Networks twin's default branch is the experimental `git-actions` (per relations doc §8.2) — ignore for canonical state.
+Mirror twin: `VyOS-Networks/vyatta-biosdevname`. Canonical side is here. The VyOS-Networks twin's default branch is the experimental `git-actions` (per the cross-repo audit) — ignore for canonical state.
 
 ## Notes for future contributors
 
