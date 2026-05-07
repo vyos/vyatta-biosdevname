@@ -31,7 +31,7 @@ No in-tree test runner.
 
 ## Cross-repo context
 
-Listed in `VyOS-Networks/vyos-build-packages/repos.toml`. Pulled into the ISO via `vyos/vyos-build`. Provides predictable interface naming used throughout `vyos-1x`'s ifconfig logic.
+Listed in an internal repository. Pulled into the ISO via `vyos/vyos-build`. Provides predictable interface naming used throughout `vyos-1x`'s ifconfig logic.
 
 ## Conventions
 
@@ -39,10 +39,6 @@ Listed in `VyOS-Networks/vyos-build-packages/repos.toml`. Pulled into the ISO vi
 - Commit / PR title format: `component: T12345: description` (Phorge task ID at https://vyos.dev).
 - Active workflows: `cla-check.yml`, `trigger-rebuild-repo-package.yml` — wired into the rebuild-dispatch chain, but **not** the PR-mirror pipeline.
 - Treat as upstream-vendored; minimise diffs against the original Dell biosdevname.
-
-## Mirror relationship
-
-Mirror twin: `VyOS-Networks/vyatta-biosdevname`. Canonical side is here. The VyOS-Networks twin's default branch is the experimental `git-actions` (per the cross-repo audit) — ignore for canonical state.
 
 ## Notes for future contributors
 
