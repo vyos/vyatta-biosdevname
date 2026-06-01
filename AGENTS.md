@@ -35,7 +35,7 @@ Listed in an internal repository. Pulled into the ISO via `vyos/vyos-build`. Pro
 
 ## Conventions
 
-- Default branch `current`.
+- Default branch `rolling`.
 - Commit / PR title format: `component: T12345: description` (Phorge task ID at https://vyos.dev).
 - Active workflows: `cla-check.yml`, `trigger-rebuild-repo-package.yml` — wired into the rebuild-dispatch chain, but **not** the PR-mirror pipeline.
 - Treat as upstream-vendored; minimise diffs against the original Dell biosdevname.
